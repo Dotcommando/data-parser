@@ -1,0 +1,17 @@
+.else-one-sample {
+  max-width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+}
+
+.else-one-sample .inner {
+  max-width: $xl;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  line-height: 60px;
+}

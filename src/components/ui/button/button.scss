@@ -1,0 +1,32 @@
+button {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  height: 48px;
+  padding: 0 20px;
+  margin: 0;
+  line-height: 48px;
+  border-radius: 3px;
+  overflow: hidden;
+  transition: background-color .2s linear, color .2s linear;
+  background-color: #42b983;
+  color: #fff;
+  border: none;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #399164;
+  }
+
+  span {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+  }
+}
