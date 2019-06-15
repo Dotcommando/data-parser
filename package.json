@@ -13,9 +13,10 @@
     "js:fix": "eslint --ext .js \".\" --fix",
     "vue:fix": "eslint --ext .vue \".\" --fix",
     "fix": "npm run lint:css:fix && npm run lint:js-vue:fix",
-    "watcher:build": "cross-env BABEL_ENV=server npm run clean:watcher && webpack --config ./watcher.config.js -w -p",
-    "watcher:dev": "cross-env BABEL_ENV=server cross-env NODE_ENV=development nodemon server-dist/watcher.bundle.js",
-    "watcher:prod": "cross-env BABEL_ENV=server cross-env NODE_ENV=production node server-dist/watcher.bundle.js"
+    "watcher:build-dev": "cross-env BABEL_ENV=server npm run clean:watcher && webpack --config ./watcher.config.js -w",
+    "watcher:build": "cross-env BABEL_ENV=server npm run clean:watcher && webpack --config ./watcher.config.js -p",
+    "watcher:dev": "cross-env-shell BABEL_ENV=server NODE_ENV=development nodemon server-dist/watcher.bundle.js",
+    "watcher:prod": "cross-env-shell BABEL_ENV=server NODE_ENV=production node server-dist/watcher.bundle.js"
   },
   "dependencies": {
     "http-status": "^1.3.2",
@@ -87,11 +88,11 @@
   },
   "lint-staged": {
     "**/*.{js,vue}": [
-      "npm run lint:js-vue:fix",
+      "npm run js:fix",
       "git add"
     ],
     "**/*.scss": [
-      "npm run lint:css:fix",
+      "npm run css:fix",
       "git add"
     ]
   }
