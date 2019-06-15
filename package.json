@@ -19,6 +19,7 @@
     "watcher:prod": "cross-env-shell BABEL_ENV=server NODE_ENV=production node server-dist/watcher.bundle.js"
   },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
     "http-status": "^1.3.2",
     "koa": "^2.7.0",
     "koa-bodyparser": "^4.2.1",
