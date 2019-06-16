@@ -1,17 +1,18 @@
 const devConfig = {
-  MONGO_URL: 'mongodb://localhost/koa-watcher-server'
+  MONGO_URL: 'mongodb://localhost/data-parser'
 }
 
 const testConfig = {
-  MONGO_URL: 'mongodb://localhost/koa-watcher-server'
+  MONGO_URL: 'mongodb://localhost/data-parser'
 }
 
 const prodConfig = {
-  MONGO_URL: 'mongodb://localhost/koa-watcher-server'
+  MONGO_URL: 'mongodb://localhost/data-parser'
 }
 
 const defaultConfig = {
-  PORT: process.env.PORT || 3030
+  PORT: process.env.PORT || 3030,
+  threads: 4
 }
 
 function envConfig (env) {

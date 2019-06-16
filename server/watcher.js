@@ -2,6 +2,9 @@ import puppeteer from 'puppeteer'
 import { tryToParse, pageInit } from './data-parser'
 import { randomInteger } from './helpers'
 import cheerio from 'cheerio'
+import './config/database'
+import config from './config/constants'
+import Watcher from './modules/watcher/watcher.model'
 
 const minWidth = 1200
 const minHeight = 720
@@ -23,6 +26,7 @@ if (process.env.NODE_ENV === 'production') {
 
   const browser = await puppeteer.launch({ headless: false, defaultViewport: { width, height } })
   const page = await pageInit(browser, width, height)
+  const threads = config.threads
 
   await page.exposeFunction('showHTMLNodeContent', function (a, b) {
     if (!b) {
@@ -40,8 +44,8 @@ if (process.env.NODE_ENV === 'production') {
     const $ = cheerio.load(`<div>${htmlAsString}</div>`)
     const $eventData = $('.dataset-value')
     const result = [[], []]
-    const len = $eventData.length
-    const halfLen = len / 2
+    const eventDataLength = $eventData.length
+    const halfLen = eventDataLength / 2
 
     $eventData.each((i, el) => {
       if (i < halfLen) {
@@ -54,5 +58,19 @@ if (process.env.NODE_ENV === 'production') {
     return Promise.resolve(result)
   })
 
-  await tryToParse(page)
+  await page.exposeFunction('saveToDb', async (queryNumber, set1, set2) => {
+    try {
+      await Watcher.create({
+        [`dataSet${queryNumber}`]: {
+          queryNumber,
+          set1,
+          set2
+        }
+      })
+    } catch (err) {
+      console.log('\x1b[31m%s\x1b[0m', err.msg)
+    }
+  })
+
+  await tryToParse(page, threads)
 })()

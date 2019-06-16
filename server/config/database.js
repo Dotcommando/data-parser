@@ -13,7 +13,7 @@ try {
 }
 
 mongoose.connection
-  .once('open', () => console.log('MongoDB is running.'))
+  .once('open', () => console.log('\x1b[36m%s\x1b[0m', 'MongoDB is running.'))
   .on('error', err => {
     throw err
   })

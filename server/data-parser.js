@@ -51,17 +51,23 @@ export async function pageInit (browser, width, height) {
 /**
  * Забираем данные из запущенного на сервере браузера.
  * @param page
+ * @param len - сколько потоков наблюдаем (3 строки данных - 3 потока)
  * @returns {Promise<void>}
  */
-export async function tryToParse (page) {
+export async function tryToParse (page, len) {
   try {
-    await page.waitForSelector('.live.content .event:nth-child(3) .dataset-value', { timeout: 15000 })
+    await page.waitForSelector(`.live.content .event:nth-child(${len}) .dataset-value`, { timeout: 15000 })
     console.log('\x1b[32m%s\x1b[0m', 'Успешно подключились.') // зелёный
 
-    await page.evaluate(() => {
+    await page.evaluate((len) => {
       const observers = []
-      const timesRan = [0, 0, 0]
-      const len = 3 // Жёстко ожидаем 3 строки
+      const timesRan = [] // Количество проходов
+
+      showHTMLNodeContent(`Формирую потоки: ${len}.`)
+
+      for (let i = 0; i < len; i++) {
+        timesRan.push(0)
+      }
 
       for (let i = 0; i < len; i++) {
         const observer = new MutationObserver(async (mutations) => {
@@ -102,6 +108,8 @@ export async function tryToParse (page) {
             showHTMLNodeContent(`Набор данных:`)
             showHTMLNodeContent(`${sets[0]}`)
             showHTMLNodeContent(`${sets[1]}`)
+            saveToDb(timesRan[i], sets[0], sets[1])
+            showHTMLNodeContent(`Сохранено в БД:`, '\x1b[32m%s\x1b[0m')
             showHTMLNodeContent(' ')
             showHTMLNodeContent('===================================', '\x1b[36m%s\x1b[0m')
 
@@ -111,12 +119,12 @@ export async function tryToParse (page) {
 
         observers.push(observer.observe(document.querySelectorAll('.live.content .event')[i], { attributes: false, childList: true, subtree: true }))
       }
-    })
+    }, len)
   } catch (err) {
     console.log('\x1b[31m%s\x1b[0m', err.message) // красный
     await delay(1000)
     console.log('Перезапускаю...')
     await page.reload(10, { waitUntil: 'domcontentloaded' })
-    await tryToParse(page)
+    await tryToParse(page, len)
   }
 }
