@@ -1,4 +1,4 @@
-import watcherRouter from './watcher/watcher.routes'
+import watcherRouter from '../models/watcher.routes'
 
 export default app => {
   app.use(watcherRouter.routes())

@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import { delay, randomInteger } from './helpers'
+import cheerio from 'cheerio'
 
 /**
  * Имитирует пользовательскую активность в рамках ширины и высоты браузера.
@@ -49,27 +50,41 @@ export async function pageInit (browser, width, height) {
 }
 
 /**
+ * Определяем, сколько асинхронных потоков нужны
+ * для отслеживания селектора ".event".
+ * @param body - строка, innerHTML страницы ("body").
+ * @returns {number}
+ */
+export function defineThreadsNumber (body) {
+  const $ = cheerio.load((`${body}`).replace(/(?:\r\n|\r|\n)/g, ''))
+
+  return $('.event').length
+}
+
+/**
  * Забираем данные из запущенного на сервере браузера.
  * @param page
- * @param len - сколько потоков наблюдаем (3 строки данных - 3 потока)
+ * @param observableSelector - селектор, чьё обновление мы отслеживаем
  * @returns {Promise<void>}
  */
-export async function tryToParse (page, len) {
+export async function tryToParse (page, observableSelector) {
   try {
-    await page.waitForSelector(`.live.content .event:nth-child(${len}) .dataset-value`, { timeout: 15000 })
+    await page.waitForSelector(observableSelector, { timeout: 15000 })
     console.log('\x1b[32m%s\x1b[0m', 'Успешно подключились.') // зелёный
 
-    await page.evaluate((len) => {
+    const bodyHandle = await page.$('body')
+    const body = await page.evaluate(body => body.innerHTML, bodyHandle)
+    const threadsNumber = defineThreadsNumber(body)
+
+    await page.evaluate(({ threadsNumber, observableSelector, body }) => {
       const observers = []
       const timesRan = [] // Количество проходов
 
-      showHTMLNodeContent(`Формирую потоки: ${len}.`)
-
-      for (let i = 0; i < len; i++) {
+      for (let i = 0; i < threadsNumber; i++) {
         timesRan.push(0)
       }
 
-      for (let i = 0; i < len; i++) {
+      for (let i = 0; i < threadsNumber; i++) {
         const observer = new MutationObserver(async (mutations) => {
           const thread = []
           let sets = [[], []]
@@ -95,6 +110,7 @@ export async function tryToParse (page, len) {
                 }
               }
             } else {
+              // const datasetTitles = await parseTitles(`${body}`)
               const dataFromHTML = await parseDataFromHtml(`${thread[0]}${thread[1]}`)
 
               sets[0] = dataFromHTML[0]
@@ -108,8 +124,7 @@ export async function tryToParse (page, len) {
             showHTMLNodeContent(`Набор данных:`)
             showHTMLNodeContent(`${sets[0]}`)
             showHTMLNodeContent(`${sets[1]}`)
-            saveToDb(timesRan[i], sets[0], sets[1])
-            showHTMLNodeContent(`Сохранено в БД:`, '\x1b[32m%s\x1b[0m')
+            saveToDb(i, sets[0], sets[1])
             showHTMLNodeContent(' ')
             showHTMLNodeContent('===================================', '\x1b[36m%s\x1b[0m')
 
@@ -117,14 +132,15 @@ export async function tryToParse (page, len) {
           }
         })
 
-        observers.push(observer.observe(document.querySelectorAll('.live.content .event')[i], { attributes: false, childList: true, subtree: true }))
+        observers.push(observer.observe(document.querySelectorAll(observableSelector)[i], { attributes: false, childList: true, subtree: true }))
       }
-    }, len)
+    }, { threadsNumber, observableSelector, body })
+    await bodyHandle.dispose()
   } catch (err) {
     console.log('\x1b[31m%s\x1b[0m', err.message) // красный
     await delay(1000)
     console.log('Перезапускаю...')
     await page.reload(10, { waitUntil: 'domcontentloaded' })
-    await tryToParse(page, len)
+    await tryToParse(page, observableSelector)
   }
 }

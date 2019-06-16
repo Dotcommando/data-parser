@@ -12,7 +12,7 @@ const prodConfig = {
 
 const defaultConfig = {
   PORT: process.env.PORT || 3030,
-  threads: 4
+  observableSelector: '.live.content .event'
 }
 
 function envConfig (env) {
