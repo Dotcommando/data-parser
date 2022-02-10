@@ -61,7 +61,7 @@
     "husky": "^2.3.0",
     "jsdoc": "^3.6.2",
     "lint-staged": "^8.1.5",
-    "node-sass": "^4.11.0",
+    "node-sass": "^7.0.0",
     "nodemon": "^1.19.1",
     "rimraf": "^2.6.3",
     "sass-loader": "^7.1.0",
